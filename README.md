@@ -1,1 +1,1 @@
-# Simplified_Go_Proj
+# EasyGo
