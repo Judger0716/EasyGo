@@ -7,42 +7,22 @@ import (
 )
 
 func main() {
-
-	r := easygin.New()
-	r.GET("/", func(ctx *easygin.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Hello EasyGin</h1>")
+	r := easygin.Default()
+	r.Use(easygin.Logger()) // global midlleware
+	r.LoadHTMLGlob("templates/*")
+	r.Static("/assets", "./static")
+	r.GET("/", func(c *easygin.Context) {
+		c.HTML(http.StatusOK, "css.tmpl", "<h1>Hello easygin</h1>")
 	})
 
-	v1 := r.Group("/v1")
+	v2 := r.Group("/v2")
+	v2.Use(easygin.OnlyForV2()) // v2 group middleware
 	{
-		v1.GET("/", func(ctx *easygin.Context) {
-			ctx.HTML(http.StatusOK, "<h1>Helle Group1<h1>")
+		v2.GET("/hello/:name", func(c *easygin.Context) {
+			// expect /hello/easyginktutu
+			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
 		})
-
-		v1.GET("/hello", func(ctx *easygin.Context) {
-			ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Query("name"), ctx.Path)
-		})
-
 	}
-
-	r.GET("/hello", func(ctx *easygin.Context) {
-		ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Query("name"), ctx.Path)
-	})
-
-	r.GET("/hello/:name", func(ctx *easygin.Context) {
-		ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Param("name"), ctx.Path)
-	})
-
-	r.GET("/assets/*filepath", func(ctx *easygin.Context) {
-		ctx.JSON(http.StatusOK, easygin.H{"filepath": ctx.Param("filepath")})
-	})
-
-	r.POST("/login", func(ctx *easygin.Context) {
-		ctx.JSON(http.StatusOK, easygin.H{
-			"username": ctx.PostForm("username"),
-			"password": ctx.PostForm("password"),
-		})
-	})
 
 	r.Run(":9999")
 }

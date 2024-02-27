@@ -18,6 +18,10 @@ type Context struct {
 	// 参数
 	Params     map[string]string
 	StatusCode int
+	// 中间件
+	handlers []HandlerFunc
+	index    int
+	engine   *Engine
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -27,6 +31,15 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Path:   req.URL.Path,
 		Method: req.Method,
 		Params: make(map[string]string),
+		index:  -1,
+	}
+}
+
+func (ctx *Context) Next() {
+	ctx.index++
+	s := len(ctx.handlers)
+	for ; ctx.index < s; ctx.index++ {
+		ctx.handlers[ctx.index](ctx)
 	}
 }
 
@@ -45,6 +58,11 @@ func (ctx *Context) Param(key string) string {
 func (ctx *Context) Status(code int) {
 	ctx.StatusCode = code
 	ctx.Writer.WriteHeader(code)
+}
+
+func (ctx *Context) Fail(code int, retMsg string) {
+	ctx.StatusCode = code
+	ctx.Writer.Write([]byte(retMsg))
 }
 
 func (ctx *Context) SetHeader(key string, value string) {
@@ -71,8 +89,10 @@ func (ctx *Context) Data(code int, data []byte) {
 	ctx.Writer.Write(data)
 }
 
-func (ctx *Context) HTML(code int, html string) {
+func (ctx *Context) HTML(code int, name string, data interface{}) {
 	ctx.SetHeader("Content-Type", "text/html")
 	ctx.Status(code)
-	ctx.Writer.Write([]byte(html))
+	if err := ctx.engine.htmlTemplates.ExecuteTemplate(ctx.Writer, name, data); err != nil {
+		ctx.Fail(500, err.Error())
+	}
 }
