@@ -13,8 +13,10 @@ type Context struct {
 	Writer http.ResponseWriter
 	Req    *http.Request
 	// 路由
-	Path       string
-	Method     string
+	Path   string
+	Method string
+	// 参数
+	Params     map[string]string
 	StatusCode int
 }
 
@@ -24,6 +26,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method,
+		Params: make(map[string]string),
 	}
 }
 
@@ -33,6 +36,10 @@ func (ctx *Context) PostForm(key string) string {
 
 func (ctx *Context) Query(key string) string {
 	return ctx.Req.URL.Query().Get(key)
+}
+
+func (ctx *Context) Param(key string) string {
+	return ctx.Params[key]
 }
 
 func (ctx *Context) Status(code int) {
