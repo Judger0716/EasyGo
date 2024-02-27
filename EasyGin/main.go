@@ -13,6 +13,18 @@ func main() {
 		ctx.HTML(http.StatusOK, "<h1>Hello EasyGin</h1>")
 	})
 
+	v1 := r.Group("/v1")
+	{
+		v1.GET("/", func(ctx *easygin.Context) {
+			ctx.HTML(http.StatusOK, "<h1>Helle Group1<h1>")
+		})
+
+		v1.GET("/hello", func(ctx *easygin.Context) {
+			ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Query("name"), ctx.Path)
+		})
+
+	}
+
 	r.GET("/hello", func(ctx *easygin.Context) {
 		ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Query("name"), ctx.Path)
 	})
