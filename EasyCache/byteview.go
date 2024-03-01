@@ -1,4 +1,4 @@
-package easycache
+package EasyCache
 
 type ByteView struct {
 	b []byte

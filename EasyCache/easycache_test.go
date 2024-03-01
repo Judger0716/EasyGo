@@ -1,4 +1,4 @@
-package easycache
+package EasyCache
 
 import (
 	"fmt"
