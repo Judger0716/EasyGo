@@ -1,4 +1,4 @@
-package EasyCache
+package easycache
 
 import (
 	"EasyCache/lru"

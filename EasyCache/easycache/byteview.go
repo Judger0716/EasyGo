@@ -1,4 +1,4 @@
-package EasyCache
+package easycache
 
 type ByteView struct {
 	b []byte
@@ -9,7 +9,7 @@ func (v ByteView) Len() int {
 }
 
 func (v ByteView) ByteSlice() []byte {
-	return cloneBytes(v.b)
+	return cloneBytes(v.b) // 返回拷贝，实现只读
 }
 
 func (v ByteView) String() string {
@@ -18,6 +18,6 @@ func (v ByteView) String() string {
 
 func cloneBytes(b []byte) []byte {
 	c := make([]byte, len(b))
-	copy(c, b)
+	copy(c, b) // 返回拷贝，实现只读
 	return c
 }
