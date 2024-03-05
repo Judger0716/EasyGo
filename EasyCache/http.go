@@ -36,6 +36,7 @@ func NewHTTPPool(self string) *HTTPPool {
 }
 
 func (p *HTTPPool) Log(format string, v ...interface{}) {
+	fmt.Println()
 	log.Printf("[Server %s] %s\n", p.self, fmt.Sprintf(format, v...))
 }
 
