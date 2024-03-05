@@ -1,4 +1,4 @@
-package easygin
+package EasyGin
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func Logger() HandlerFunc {
 	}
 }
 
-func OnlyForV2() HandlerFunc {
+func CacheLogger() HandlerFunc {
 	return func(ctx *Context) {
 		// Start timer
 		t := time.Now()

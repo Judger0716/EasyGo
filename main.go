@@ -2,10 +2,11 @@ package main
 
 import (
 	"EasyCache"
-	"flag"
+	"EasyGin"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 var db = map[string]string{
@@ -36,14 +37,6 @@ func startCacheServer(addr string, addrs []string, gee *EasyCache.Group) {
 func startAPIServer(apiAddr string, gee *EasyCache.Group) {
 	http.Handle("/api", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			key := r.URL.Query().Get("key")
-			view, err := gee.Get(key)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Write(view.ByteSlice())
 
 		}))
 	log.Println("frontend server is running at", apiAddr)
@@ -52,27 +45,59 @@ func startAPIServer(apiAddr string, gee *EasyCache.Group) {
 }
 
 func main() {
-	var port int
-	var api bool
-	flag.IntVar(&port, "port", 8001, "EasyCache server port")
-	flag.BoolVar(&api, "api", false, "Start a api server?")
-	flag.Parse()
 
-	apiAddr := "http://localhost:9999"
-	addrMap := map[int]string{
-		8001: "http://localhost:8001",
-		8002: "http://localhost:8002",
-		8003: "http://localhost:8003",
+	r := EasyGin.Default()
+	r.Use(EasyGin.Logger()) // global midlleware
+	r.LoadHTMLGlob("EasyGin/templates/*")
+	r.Static("/assets", "./static")
+
+	// frontend
+	r.GET("/", func(c *EasyGin.Context) {
+		c.HTML(http.StatusOK, "css.tmpl", "<h1>Hello EasyGin</h1>")
+	})
+
+	// distributed nodes
+	cacheGroup := createGroup()
+	for i := 0; i < 3; i++ {
+		node := EasyGin.Default()
+		node.Use(EasyGin.Logger())
+		node.GET("/api", func(c *EasyGin.Context) {
+			key := c.Query("key")
+			log.Println(key)
+			view, err := cacheGroup.Get(key)
+			if err != nil {
+				c.Fail(500, "Internel Server Error")
+				return
+			}
+			c.Data(200, view.ByteSlice())
+			// w.Header().Set("Content-Type", "application/octet-stream")
+			// w.Write(view.ByteSlice())
+		})
+		go node.Run(":" + strconv.Itoa(8001+i))
 	}
 
-	var addrs []string
-	for _, v := range addrMap {
-		addrs = append(addrs, v)
+	// api server
+	cache := r.Group("/cache")
+	cache.Use(EasyGin.CacheLogger()) // v2 group middleware
+	{
+		cache.GET("/hello/:name", func(c *EasyGin.Context) {
+			// expect /hello/EasyGinktutu
+			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
+		})
+
+		cache.GET("/api", func(c *EasyGin.Context) {
+			key := c.Query("key")
+			log.Println(key)
+			view, err := cacheGroup.Get(key)
+			if err != nil {
+				c.Fail(500, "Internel Server Error")
+				return
+			}
+			c.Data(200, view.ByteSlice())
+			// w.Header().Set("Content-Type", "application/octet-stream")
+			// w.Write(view.ByteSlice())
+		})
 	}
 
-	gee := createGroup()
-	if api {
-		go startAPIServer(apiAddr, gee)
-	}
-	startCacheServer(addrMap[port], []string(addrs), gee)
+	r.Run(":9999")
 }

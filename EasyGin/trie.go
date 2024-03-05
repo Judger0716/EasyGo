@@ -1,4 +1,4 @@
-package easygin
+package EasyGin
 
 import (
 	"strings"

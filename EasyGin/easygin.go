@@ -1,4 +1,4 @@
-package easygin
+package EasyGin
 
 import (
 	"html/template"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// 定义easygin的Handler类型
+// 定义EasyGin的Handler类型
 type HandlerFunc func(*Context)
 
 type RouterGroup struct {
