@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultBasePath  = "/_easycache/"
+	DefaultBasePath  = "/_easycache/"
 	deafaultReplicas = 50
 )
 
@@ -31,12 +31,12 @@ type httpGetter struct {
 func NewHTTPPool(self string) *HTTPPool {
 	return &HTTPPool{
 		self:     self,
-		basePath: defaultBasePath,
+		basePath: DefaultBasePath,
 	}
 }
 
 func (p *HTTPPool) Log(format string, v ...interface{}) {
-	log.Printf("[Server %s] %s", p.self, fmt.Sprintf(format, v...))
+	log.Printf("[Server %s] %s\n", p.self, fmt.Sprintf(format, v...))
 }
 
 func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {

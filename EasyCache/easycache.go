@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+// 接口型函数，用于缓存不存在时从源数据获取
+// 即缓存不存在去查找数据库
 type Getter interface {
 	Get(key string) ([]byte, error)
 }
@@ -60,7 +62,7 @@ func (g *Group) Get(key string) (ByteView, error) {
 	}
 
 	if v, ok := g.mainCache.get(key); ok {
-		log.Println("[EasyCache] hit")
+		log.Printf("[EasyCache - %s] hit\n", g.name)
 		return v, nil
 	}
 
@@ -115,4 +117,22 @@ func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
 		return ByteView{}, err
 	}
 	return ByteView{b: bytes}, nil
+}
+
+var db = map[string]string{
+	"Tom":  "630",
+	"Jack": "589",
+	"Sam":  "567",
+}
+
+// 创建分布式节点组
+func CreateGroup() *Group {
+	return NewGroup("scores", 2<<10, GetterFunc(
+		func(key string) ([]byte, error) {
+			log.Println("[SlowDB] search key", key)
+			if v, ok := db[key]; ok {
+				return []byte(v), nil
+			}
+			return nil, fmt.Errorf("%s not exist", key)
+		}))
 }

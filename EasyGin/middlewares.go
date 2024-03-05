@@ -16,7 +16,7 @@ func Logger() HandlerFunc {
 		// Process request
 		ctx.Next()
 		// Calculate resolution time
-		log.Printf("[%d] %s in %v", ctx.StatusCode, ctx.Req.RequestURI, time.Since(t))
+		log.Printf("[%d] %s in %v\n", ctx.StatusCode, ctx.Req.RequestURI, time.Since(t))
 	}
 }
 
@@ -25,9 +25,10 @@ func CacheLogger() HandlerFunc {
 		// Start timer
 		t := time.Now()
 		// if a server error occurred
+		ctx.Next()
 		// ctx.Fail(500, "Internal Server Error")
 		// Calculate resolution time
-		log.Printf("[%d] %s in %v for group v2", ctx.StatusCode, ctx.Req.RequestURI, time.Since(t))
+		log.Printf("[%d] %s in %v for CacheServer\n", ctx.StatusCode, ctx.Req.RequestURI, time.Since(t))
 	}
 }
 
